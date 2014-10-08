@@ -1,23 +1,47 @@
 module Dork
   require 'ostruct'
 
-  class Node < OpenStruct
+  class Node
+    attr_accessor :parent, :payload, :children
 
-    def initialize(type, parent, &block)
-      super()
-      self.parent = parent
-      self.type = type
-      self.children = []
-
-      instance_eval(&block) unless block.nil?
+    def initialize(parent, name)
+      if block_given?
+        yield(self)
+      end
+      @parent = parent
+      @parent.children << self unless @parent.nil
+      @name = name
+      @children = []
     end
 
-    def self.world(&block)
-      Node.new(:world, nil, &block)
+    def is_inside(parent)
+      @parent = parent
     end
 
-    def room(type, &block)
-      Node.new(type, self, &block)
+    def find(name)
+      return self if self.name == name
+
+      children.each do |c|
+        result = c.find(name)
+        return result unless result.nil?
+      end
+
+    end
+
+  end
+
+  class World < Node
+  end
+
+  class Room < Node
+  end
+
+  class Item < Node
+  end
+
+  class Player < Node
+    def take(item)
+      item.parent = self
     end
 
   end

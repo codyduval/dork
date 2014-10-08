@@ -3,29 +3,72 @@ require "dork"
 
 module Dork
 
-  describe Node do
+  describe World do
     it "can be an empty world" do
-      world = Node.world
-      expect(world).to be_instance_of(Node)
+      World.new(nil, :world) 
     end
-
-    it "can be a room called 'kitchen' in the world" do
-      world = Node.world do 
-        self.room(:kitchen)
-      end
-
-      expect(world).to eq("99")
-    end 
-
-    it "can be an item" do
-    end
-
-    it "can be a bowl inside a kitchen" do
-    end
-
-    it "can be a player in a room" do
-    end
-
   end
+
+  describe Room do
+    it "can be a room called 'kitchen' in the world" do
+      World.new(nil, :world) do |wrld|
+        room = Room.new(wrld, :kitchen)
+        expect(room.parent).to eq(wrld)
+      end
+    end 
+  end
+
+  describe Item do
+    it "can be an item called 'spoon' in kitchen " do
+      World.new(nil, :world) do |wrld|
+        Room.new(wrld, :kitchen) do |kit|
+          spoon = Item.new(kit, :spoon)
+          expect(spoon.parent).to eq(kit)
+        end
+      end 
+    end
+  end
+
+  describe Player do
+    it "can be a player called 'cody' in kitchen " do
+      World.new(nil, :world) do |wrld|
+        Room.new(wrld, :kitchen) do |kit|
+          player = Player.new(kit, :cody)
+
+          expect(player.parent).to eq(kit)
+        end
+      end 
+    end
+
+    it "can move an item from kitchen to player" do
+      World.new(nil, :world) do |wrld|
+        Room.new(wrld, :kitchen) do |kit|
+          player = Player.new(kit, :cody)
+          spoon = Item.new(kit, :spoon)
+          expect(spoon.parent).to eq(kit)
+
+          player.take(spoon)
+
+          expect(spoon.parent).to eq(player)
+        end
+      end 
+    end
+
+    it "can move a player from one room to another" do
+      world = World.new(nil, :world) do |wrld|
+        Room.new(wrld, :bathroom) do |bth|
+          Player.new(bth, :cody)
+        end
+
+        Room.new(wrld, :kitchen) do |kit|
+        end
+      end 
+
+      player = world.find(:cody)
+      player.move_to(:kitchen)
+
+    end
+  end
+
 
 end
