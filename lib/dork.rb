@@ -2,33 +2,40 @@ module Dork
   require 'ostruct'
 
   class Node
-    attr_accessor :parent, :payload, :children
+    attr_accessor :name, :parent, :payload, :children
 
-    def initialize(parent, name)
-      @children = []
-      if block_given?
-        yield(self)
-      end
-      unless @parent.nil?
-        @children << @parent.children
-
-      end
-      @parent = parent
+    def initialize(name, payload=nil)
       @name = name
+      @payload = payload 
+      @children = []
+
+      if block_given?
+        add(yield)
+      end
     end
 
-    def is_inside(parent)
-      @parent = parent
+    def add(*children)
+      children.flatten.each do |child|
+        @children << child
+        child.parent = self
+      end
     end
 
     def find(name)
       return self if self.name == name
-
+     
       children.each do |c|
-        result = c.find(name)
-        return result unless result.nil?
+        if c.name == name
+          return c
+        else
+          c.find(name)
+        end
       end
 
+    end
+
+    def descendants
+      descendants = []
     end
 
   end
@@ -43,10 +50,6 @@ module Dork
   end
 
   class Player < Node
-    def take(item)
-      item.parent = self
-    end
-
   end
 
 end
