@@ -5,13 +5,16 @@ module Dork
     attr_accessor :parent, :payload, :children
 
     def initialize(parent, name)
+      @children = []
       if block_given?
         yield(self)
       end
+      unless @parent.nil?
+        @children << @parent.children
+
+      end
       @parent = parent
-      @parent.children << self unless @parent.nil
       @name = name
-      @children = []
     end
 
     def is_inside(parent)

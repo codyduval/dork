@@ -7,6 +7,15 @@ module Dork
     it "can be an empty world" do
       World.new(nil, :world) 
     end
+
+    it "can list its children" do
+      world = World.new(nil, :world) do |wrld|
+        Room.new(wrld, :bathroom)
+        Room.new(wrld, :kitchen)
+      end
+
+      expect(world.children).to eq(["kdjfk"])
+    end
   end
 
   describe Room do
@@ -40,7 +49,7 @@ module Dork
       end 
     end
 
-    it "can move an item from kitchen to player" do
+    it "can move an item from kitchen to player in same room" do
       World.new(nil, :world) do |wrld|
         Room.new(wrld, :kitchen) do |kit|
           player = Player.new(kit, :cody)
@@ -54,21 +63,6 @@ module Dork
       end 
     end
 
-    it "can move a player from one room to another" do
-      world = World.new(nil, :world) do |wrld|
-        Room.new(wrld, :bathroom) do |bth|
-          Player.new(bth, :cody)
-        end
-
-        Room.new(wrld, :kitchen) do |kit|
-        end
-      end 
-
-      player = world.find(:cody)
-      player.move_to(:kitchen)
-
-    end
   end
-
 
 end
