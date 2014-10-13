@@ -186,6 +186,15 @@ module Dork
       spoon = world.children.last.children.last
       expect(spoon.name).to eq(:spoon)
     end
+
+    it "cant be seen if it is in something closed" do
+      box = Item.new(:box)
+      box.open = false
+      thing_in_box = Item.new(:hidden_thing)
+      box.add(thing_in_box)
+
+      expect(thing_in_box.visible).to eq(false)
+    end
   end
 
   describe Player do
@@ -214,16 +223,90 @@ module Dork
       expect(@item.parent).to eq(@player)
     end
 
-    it "can move from room to room" do
+    it "can move a direction if room has that exit" do
       another_room = Room.new(:den)
+      @room.exit_east = :den
 
       @room.add(@player)
       @world.add(@room)
       @world.add(another_room)
 
-      @player.move_to(:den)
+      @player.go("east")
+      expect(@player.parent.name).to eq(:den)
+    end
+
+    it "cannnot move a direction if room does not has that exit" do
+      another_room = Room.new(:den)
+      @room.exit_east = :den
+
+      @room.add(@player)
+      @world.add(@room)
+      @world.add(another_room)
+
+      @player.go("west")
+      expect(@player.parent.name).to eq(:kitchen)
+    end
+
+    it "can return its inventory" do
+      @room.add(@player)
+      @room.add(@item)
+      @world.add(@room)
+
+
+      @player.get(@item.name)
+      expect(@player.inventory).to include(@item)
+    end
+
+    it "can take a two word string command" do
+      @room.add(@player)
+      @room.add(@item)
+      @world.add(@room)
+
+      @player.command("go north")
+      expect(@player.parent).to equal(@room)
+    end
+
+    it "can pickup an item in the same room" do
+      @item.can_take = true
+      @room.add(@player)
+      @room.add(@item)
+      @world.add(@room)
+
+      @player.pickup(@item.name)
+      expect(@item.parent).to equal(@player)
+    end
+
+    it "can't pickup an item in the different room" do
+      @item.can_take = true
+      different_room = Room.new(:bedroom)
+      @room.add(@player)
+      different_room.add(@item)
+      @world.add(@room).add(different_room)
+
+      @player.pickup(@item.name)
+      expect(@item.parent).to equal(different_room)
+    end
+
+    it "doesnt break if it doesnt know command" do
+      @room.add(@player)
+      @room.add(@item)
+      @world.add(@room)
+
+      @player.command("blurb up")
+      expect(@player.parent).to equal(@room)
+    end
+
+    skip "can get a command from the repl" do
+      @room.add(@player)
+      @room.add(@item)
+      @world.add(@room)
+
+      allow(@player).to receive(:gets).and_return("go north")
+
+      @player.play
     end
 
   end
+
 
 end
