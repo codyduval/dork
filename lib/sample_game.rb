@@ -1,9 +1,10 @@
 $: << '.'
 require "dork"
+require "yaml"
 
 player = Dork::Player.new(:cody)
 
-world = Dork::World.new(:world)
+@world = Dork::World.new(:world)
   kitchen = Dork::Room.new(:kitchen, "You are in a modern KITCHEN. There is a door to the south that leads to a DINING room.")
     kitchen.exit_south = :dining
     cabinet = Dork::Item.new(:cabinet, "A CABINET.")
@@ -42,7 +43,7 @@ fridge.add(eggs)
 cabinet.add(bowl).add(plate).add(pan)
 kitchen.add(player).add(cabinet).add(stove).add(fridge).add(drawer).add(uncooked_scrambled_eggs).add(cooked_eggs)
 kitchen.add(mix_eggs).add(cook_eggs)
-world.add(kitchen).add(dining)
+@world.add(kitchen).add(dining)
 
 
-player.play
+#player.play

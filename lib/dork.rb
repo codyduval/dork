@@ -57,7 +57,15 @@ module Dork
     end
 
     def player
-      root.children.select{|child| child.is_a?(Player)}.last
+      if self.is_a?(Dork::Player)
+        return self
+      else
+        children.each do |child|
+          result = child.player
+          return result unless result.nil?
+        end
+      end
+      nil
     end
 
     def has(name)
@@ -89,12 +97,12 @@ module Dork
       @exit_north = @exit_south = @exit_east = @exit_west = false
     end
 
-    def visible
-      children.select{|c| c.is_a?(Player)}.any?
+    def is_visible
+      children.select{|c| c.is_a?(Dork::Player)}.any?
     end
 
     def scripts
-      children.select{|c| c.is_a?(Script)}
+      children.select{|c| c.is_a?(Dork::Script)}
     end
 
     def has_script?(phrase)
@@ -114,12 +122,11 @@ module Dork
       @open = @can_take = @can_open = true
     end
 
-    def visible
-      if parent.is_a?(Item) && !parent.open
-        false
-      else
-        true
+    def is_visible
+      if @visible == false || (parent.is_a?(Dork::Item) && !parent.open)
+        return false
       end
+      true
     end
   end
   
@@ -129,6 +136,10 @@ module Dork
     def initialize(name, description="")
       super
       @visible = false
+    end
+
+    def is_visible
+      false
     end
     
     def conditions_met? 
@@ -149,48 +160,64 @@ module Dork
 
     def failure
     end
-   
   end
 
   class Player < Node
-    alias_method :inventory, :children
 
-    VERBS = %w{pickup go look}
+    VERBS = %w{pickup go look open}
     DIRS = %w{north east south west}
 
     def initialize(name, description="")
       super
       @visible = false
     end
+    
+    def is_visible
+      false
+    end
+
+    def inventory
+      items = []
+      children.each do |child|
+        items << child.description if child.is_visible
+      end
+      items
+    end
 
     def pickup(item_name)
       item = root.find(item_name)
-      if (item == nil || item.parent != self.parent)
+      if (item == nil || !item.is_visible)
         "I don't see that here."
       elsif item.can_take != true
         "You can't pick that up right now."
       else
         get(item.name)
+        "You pickup the #{item.name.to_s}"
       end
     end
 
     def go(direction)
       current_room = parent
+      direction = direction.to_s
       dir_to_exit = "exit_#{direction}"
       if DIRS.include?(direction) &&
          current_room.send(dir_to_exit) != false 
         move_to(current_room.send(dir_to_exit))
+        look(parent.name)
       else
         "You can't go that way"
       end
     end
-    
-    def look_one(name)
-      item_to_see = root.find(name)
-      if item_to_see && item_to_see.visible
-        item_to_see.description
-      else
+
+    def open(item_name)
+      item = root.find(item_name)
+      if (item == nil || item.parent != self.parent)
         "I don't see that here."
+      elsif item.can_open != true
+        "You can't open that right now."
+      else
+        item.open = true
+        look(item.name)
       end
     end
 
@@ -198,8 +225,11 @@ module Dork
       descriptions = ""
       item_to_see = root.find(name)
       descriptions << item_to_see.description
+      if item_to_see.children.select{|child| child.is_visible}.any?
+        descriptions << "You also see: " 
+      end
       item_to_see.children.each do |item|
-        if item.visible == true
+        if item.is_visible
           descriptions << item.description
         end
       end
@@ -220,6 +250,8 @@ module Dork
       else
         if phrase == "look"
           puts "#{look(parent.name)}"
+        elsif phrase == "inventory"
+          puts "#{inventory}"
         else
           puts "Command should be two words, like 'go north'"
         end
@@ -249,6 +281,7 @@ module Dork
     def conditions_met?(script)
       if script.conditions_met? == true
         script.is_successful
+        puts "#{script.success_message}"
       else
         puts "#{script.failure_message}"
       end
@@ -260,7 +293,5 @@ module Dork
       room.get(self.name)
     end
   end
-
-
 
 end

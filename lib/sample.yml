@@ -1,0 +1,182 @@
+--- &5 !ruby/object:Dork::World
+name: :world
+visible: true
+description: ''
+children:
+- &1 !ruby/object:Dork::Room
+  name: :kitchen
+  visible: true
+  description: You are in a modern KITCHEN. There is a door to the south that leads to a DINING room.
+  exit_west: false
+  exit_east: false
+  exit_south: :dining
+  exit_north: false
+  parent: *5
+  children:
+  - !ruby/object:Dork::Player
+    name: :cody
+    visible: false
+    description: ''
+    children: []
+    parent: *1
+  - &2 !ruby/object:Dork::Item
+    name: :cabinet
+    visible: true
+    description: A CABINET.
+    can_open: true
+    can_take: false
+    open: false
+    parent: *1
+    children:
+    - !ruby/object:Dork::Item
+      name: :bowl
+      visible: true
+      description: A mixing BOWL.
+      children: []
+      can_open: false
+      can_take: true
+      open: true
+      parent: *2
+    - !ruby/object:Dork::Item
+      name: :plate
+      visible: true
+      description: A dinner PLATE.
+      children: []
+      can_open: false
+      can_take: true
+      open: true
+      parent: *2
+    - !ruby/object:Dork::Item
+      name: :pan
+      visible: true
+      description: A PAN for cooking things.
+      children: []
+      can_open: false
+      can_take: true
+      open: true
+      parent: *2
+  - !ruby/object:Dork::Item
+    name: :stove
+    visible: true
+    description: A STOVE for cooking.
+    children: []
+    can_open: false
+    can_take: false
+    open: true
+    parent: *1
+  - &3 !ruby/object:Dork::Item
+    name: :refrigerator
+    visible: true
+    description: A REFRIGERATOR.
+    can_open: true
+    can_take: false
+    open: false
+    parent: *1
+    children:
+    - !ruby/object:Dork::Item
+      name: :eggs
+      visible: true
+      description: A carton of farm fresh EGGS.
+      children: []
+      can_open: false
+      can_take: true
+      open: true
+      parent: *3
+  - &4 !ruby/object:Dork::Item
+    name: :drawer
+    visible: true
+    description: A DRAWER.
+    can_open: true
+    can_take: false
+    open: false
+    parent: *1
+    children:
+    - !ruby/object:Dork::Item
+      name: :whisk
+      visible: true
+      description: A WHISK for beating or mixing things.
+      children: []
+      can_open: false
+      can_take: true
+      open: true
+      parent: *4
+    - !ruby/object:Dork::Item
+      name: :fork
+      visible: true
+      description: A FORK for putting food into your mouth.
+      children: []
+      can_open: false
+      can_take: true
+      open: true
+      parent: *4
+  - !ruby/object:Dork::Item
+    name: :uncooked
+    visible: false
+    description: UNCOOKED scrambled egg mixture.
+    children: []
+    can_open: false
+    can_take: true
+    open: true
+    parent: *1
+  - !ruby/object:Dork::Item
+    name: :cooked
+    visible: false
+    description: Perfectly COOKED scrambled eggs on plate.
+    children: []
+    can_open: false
+    can_take: true
+    open: true
+    parent: *1
+  - !ruby/object:Dork::Script
+    name: :mix_eggs
+    visible: false
+    description: ''
+    children: []
+    script_keys:
+    - mix eggs
+    - scramble eggs in bowl
+    - mix eggs in bowl
+    - scramble eggs
+    failure_message: Hmm, that sounds like a good idea, but you don't have everything you need to do it.
+    success_message: With verve and aplomb, you crack open two eggs into the bowl and scramble them together. You now see a bowl of UNCOOKED egg mixture on the counter.
+    conditions:
+    - root.player.has(:whisk)
+    - root.player.has(:eggs)
+    - root.player.has(:bowl)
+    actions:
+    - root.find(:eggs).visible = false
+    - root.find(:uncooked).visible = true
+    parent: *1
+  - !ruby/object:Dork::Script
+    name: :cook_eggs
+    visible: false
+    description: ''
+    children: []
+    script_keys:
+    - cook eggs
+    - cook eggs on stove
+    - put eggs in pan
+    - use stove to cook eggs
+    - turn on stove
+    failure_message: Hmm, that sounds like a good idea, but you don't have everything you need to do it.
+    success_message: You turn on the stove, pour the eggs into the pan, and carefully cook the eggs to perfection.  You put them on your plate.
+    conditions:
+    - root.player.has(:pan)
+    - root.player.has(:uncooked)
+    - root.player.has(:plate)
+    actions:
+    - root.find(:uncooked).visible = false
+    - root.find(:cooked).visible = true
+    - root.find(:plate).visible = false
+    - root.find(:pan).description = "A dirty PAN."
+    parent: *1
+- !ruby/object:Dork::Room
+  name: :dining
+  visible: true
+  description: You are in a small dining room. There is door to the north that leads to the KITCHEN.
+  children: []
+  exit_west: false
+  exit_east: false
+  exit_south: false
+  exit_north: :kitchen
+  parent: *5
