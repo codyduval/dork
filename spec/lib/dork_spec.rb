@@ -139,6 +139,17 @@ module Dork
       expect(grandchild.parent).to eq(child)
     end
 
+    it "can tell if it has a node" do
+      root = Node.new(:root)
+      child = Node.new(:child)
+      grandchild = Node.new(:grandchild)
+
+      child.add(grandchild)
+      root.add(child)
+
+      expect(child.has(:grandchild)).to be(true)
+    end
+
   end
 
   describe World do
@@ -166,13 +177,25 @@ module Dork
       expect(world.children.last.name).to eq(:kitchen)
     end 
 
+    it "finds a script by a key" do
+      script = Script.new(:unlock_door)
+      script.script_keys = ["open door with key", "use key on door"]
+
+      @den.add(script)
+      script_text1 = script.script_keys.first
+      script_text2 = script.script_keys.last
+
+      expect(@den.has_script?(script_text1)).to eq(script)
+      expect(@den.has_script?(script_text2)).to eq(script)
+    end
+
+
     it "can have exits to other rooms" do
       @kitchen.exit_north = @den
       @den.exit_south = @kitchen
 
       expect(@kitchen.exit_north.name).to eq(:den)
     end
-
   end
 
   describe Item do
@@ -197,12 +220,45 @@ module Dork
     end
   end
 
+  describe Script do 
+    before(:each) do
+      @player = Player.new(:cody)
+      @room = Room.new(:den) 
+      @box = Item.new(:box) 
+      @key = Item.new(:key) 
+      @player.add(@key)
+      @script = Script.new(:key_box)
+      @room.add(@script).add(@player).add(@box)
+    end
+
+    it "can execute commands" do
+      @script.conditions = [ "parent.name == :den",
+                            "player.has(:key)",
+                            "parent.has(:box)" ]
+
+      expect(@script.conditions_met?).to be(true)
+    end 
+
+    it "does something when successful" do
+      @box.can_open = false
+      @script.actions = ["root.find(:box).can_open = true"]
+      @script.is_successful
+      expect(@box.can_open).to be(true)
+    end
+
+    it "returns a message when it doesn't work" do
+
+    end 
+
+  end
+
   describe Player do
     before(:each) do
       @player = Player.new(:cody)
       @world = World.new(:world)
       @room = Room.new(:kitchen)
       @item = Item.new(:spoon)
+      @script = Script.new(:locked_box)
     end
 
     it "can be a player called 'cody' in kitchen " do
@@ -266,6 +322,22 @@ module Dork
       expect(@player.parent).to equal(@room)
     end
 
+    it "can take a one word string command look" do
+      @room.add(@player)
+      @room.add(@item)
+      @world.add(@room)
+      @room.description = "This is a room."
+
+      expect(@player.command("look")).to eq("This is a room.")
+    end
+
+    it "can execute a script with a command" do
+      @script.script_keys = ["unlock box with key", "use key on box"]
+      @room.add(@script).add(@player)
+
+      @player.command("unlock box with key")
+    end
+
     it "can pickup an item in the same room" do
       @item.can_take = true
       @room.add(@player)
@@ -274,6 +346,15 @@ module Dork
 
       @player.pickup(@item.name)
       expect(@item.parent).to equal(@player)
+    end
+
+    it "can look and get a description of a room" do
+      @room.add(@player)
+      @room.add(@item)
+      @world.add(@room)
+      @room.description = "This is a room"
+
+      expect(@player.look(@room.name)).to eq("This is a room")
     end
 
     it "can't pickup an item in the different room" do
