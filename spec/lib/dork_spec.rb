@@ -345,7 +345,7 @@ module Dork
       @world.add(@room)
       @room.description = "This is a room"
 
-      expect(@player.look(@room.name)).to eq("This is a room")
+      expect(@player.look(@room.name)).to include("This is a room")
     end
 
     it "can't pickup an item it can't see" do
@@ -368,18 +368,6 @@ module Dork
       @player.command("blurb up")
       expect(@player.parent).to equal(@room)
     end
-
-    skip "can get a command from the repl" do
-      @room.add(@player)
-      @room.add(@item)
-      @world.add(@room)
-
-      allow(@player).to receive(:gets).and_return("go north")
-
-      @player.play
-    end
-
   end
-
 
 end

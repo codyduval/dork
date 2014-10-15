@@ -254,7 +254,7 @@ module Dork
         elsif phrase == "inventory"
           puts "#{inventory}"
         else
-          puts "Command should be two words, like 'go north'"
+          puts "Most commands will be two words, like 'go north', or 'pickup spoon.' You can also 'inventory', or 'look' to get your bearings. Type 'quit' to exit the game."
         end
       end
     end
