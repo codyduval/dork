@@ -214,9 +214,10 @@ module Dork
       box = Item.new(:box)
       box.open = false
       thing_in_box = Item.new(:hidden_thing)
+      thing_in_box.visible = true
       box.add(thing_in_box)
 
-      expect(thing_in_box.visible).to eq(false)
+      expect(thing_in_box.is_visible).to eq(false)
     end
   end
 
@@ -233,7 +234,7 @@ module Dork
 
     it "can execute commands" do
       @script.conditions = [ "parent.name == :den",
-                            "player.has(:key)",
+                            "root.player.has(:key)",
                             "parent.has(:box)" ]
 
       expect(@script.conditions_met?).to be(true)
@@ -310,7 +311,7 @@ module Dork
 
 
       @player.get(@item.name)
-      expect(@player.inventory).to include(@item)
+      expect(@player.inventory).to include(@item.description)
     end
 
     it "can take a two word string command" do
@@ -320,15 +321,6 @@ module Dork
 
       @player.command("go north")
       expect(@player.parent).to equal(@room)
-    end
-
-    it "can take a one word string command look" do
-      @room.add(@player)
-      @room.add(@item)
-      @world.add(@room)
-      @room.description = "This is a room."
-
-      expect(@player.command("look")).to eq("This is a room.")
     end
 
     it "can execute a script with a command" do
@@ -357,15 +349,16 @@ module Dork
       expect(@player.look(@room.name)).to eq("This is a room")
     end
 
-    it "can't pickup an item in the different room" do
+    it "can't pickup an item it can't see" do
       @item.can_take = true
-      different_room = Room.new(:bedroom)
+      closed_box = Item.new(:closed_box)
+      closed_box.open = false
       @room.add(@player)
-      different_room.add(@item)
-      @world.add(@room).add(different_room)
+      closed_box.add(@item)
+      @world.add(@room).add(closed_box)
 
       @player.pickup(@item.name)
-      expect(@item.parent).to equal(different_room)
+      expect(@item.parent).to equal(closed_box)
     end
 
     it "doesnt break if it doesnt know command" do
