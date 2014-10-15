@@ -4,7 +4,6 @@ require "dork"
 module Dork
 
   describe Node do
-
     it "can add a child" do
       root = Node.new(:root)
       child = Node.new(:child)

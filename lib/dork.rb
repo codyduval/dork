@@ -226,11 +226,12 @@ module Dork
       item_to_see = root.find(name)
       descriptions << item_to_see.description
       if item_to_see.children.select{|child| child.is_visible}.any?
-        descriptions << "You also see: " 
+        descriptions << " You also see:\n" 
       end
       item_to_see.children.each do |item|
         if item.is_visible
           descriptions << item.description
+          descriptions << "\n"
         end
       end
       descriptions
@@ -260,6 +261,7 @@ module Dork
 
     def play
       puts "Welcome. Type 'quit' to exit."
+      puts "#{look(parent.name)}"
       loop do
         print "> "
         action = gets.chomp

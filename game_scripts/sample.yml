@@ -170,13 +170,33 @@ children:
     - root.find(:plate).visible = false
     - root.find(:pan).description = "A dirty PAN."
     parent: *1
-- !ruby/object:Dork::Room
+- &6 !ruby/object:Dork::Room
   name: :dining
   visible: true
   description: You are in a small dining room. There is door to the north that leads to the KITCHEN.
-  children: []
   exit_west: false
   exit_east: false
   exit_south: false
   exit_north: :kitchen
   parent: *5
+  children:
+  - !ruby/object:Dork::Script
+    name: :eat_eggs
+    visible: false
+    description: ''
+    children: []
+    script_keys:
+    - eat eggs
+    - sit and eat
+    - sit table
+    - sit at table
+    failure_message: Hmm, that sounds like a good idea, but you don't have everything you need to do it.
+    success_message: You sit at the table and eat your eggs.  You win!
+    conditions:
+    - root.player.has(:cooked)
+    - root.player.has(:fork)
+    actions:
+    - root.find(:cooked).visible = false
+    - root.find(:plate).visible = true
+    - root.find(:plate).description = "An empty plate."
+    parent: *6
