@@ -9,7 +9,7 @@ module Dork
       @description = description
       @children = []
 
-      # So a node add a child via a block
+      # So a node can add a child via a block
       if block_given?
         add(yield)
       end
@@ -36,7 +36,8 @@ module Dork
       list
     end
 
-    # Searches through tree for a node with supplied name.  Obviously won't work if duplicate named nodes exist.
+    # Searches through tree for a node with supplied name.  
+    # Won't work if duplicate named nodes exist.
     def find(name)
       if self.name == name
         return self
@@ -56,6 +57,7 @@ module Dork
       root
     end
 
+    
     def player
       if self.is_a?(Dork::Player)
         return self
@@ -68,6 +70,7 @@ module Dork
       nil
     end
 
+    # Check to see if an individual node "owns" another node
     def has(name)
       thing = root.find(name)
       children.select{|child| child == thing}.any?
@@ -97,14 +100,18 @@ module Dork
       @exit_north = @exit_south = @exit_east = @exit_west = false
     end
 
+    # A room is invisible unless a Player is in it.
     def is_visible
       children.select{|c| c.is_a?(Dork::Player)}.any?
     end
 
+    # Scriptable actions are simply a sub node of the room within which
+    # they occur.
     def scripts
       children.select{|c| c.is_a?(Dork::Script)}
     end
 
+    # Check to see if any game scripts are attached to room.
     def has_script?(phrase)
       if script = scripts.select{|script| script.script_keys.include?(phrase)}.last
         script
@@ -122,6 +129,8 @@ module Dork
       @open = @can_take = @can_open = true
     end
 
+    # Check to see if an item is visible.  False if it's inside another item and 
+    # the item is closed.
     def is_visible
       if @visible == false || (parent.is_a?(Dork::Item) && !parent.open)
         return false
@@ -130,6 +139,8 @@ module Dork
     end
   end
   
+  # Scripts are sets of conditions that must be met in order to trigger another
+  # action.
   class Script < Node
     attr_accessor :script_keys, :failure_message, :success_message, :conditions, :actions
 
@@ -164,6 +175,8 @@ module Dork
 
   class Player < Node
 
+    # Aside from specific script actions, these are all the actions a
+    # a player can perform.
     VERBS = %w{pickup go look open}
     DIRS = %w{north east south west}
 
@@ -237,6 +250,7 @@ module Dork
       descriptions
     end
 
+    # Take a phrase from the REPL and executes it.
     def command(phrase)
       if script = parent.has_script?(phrase)
         conditions_met?(script)
@@ -259,6 +273,7 @@ module Dork
       end
     end
 
+    # The basic REPL.  Takes a string from a player and passes it to the command method.
     def play
       puts "Welcome. Type 'quit' to exit."
       puts "#{look(parent.name)}"
